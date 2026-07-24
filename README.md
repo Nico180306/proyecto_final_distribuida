@@ -1,0 +1,1 @@
+"Proyecto Final Computación Distribuida - Orquestación Docker. El código fuente de los microservicios se encuentra en los siguientes repositorios: https://github.com/Nico180306/music_catalog_api.git y https://github.com/JaimeJJ-dot/music_catalog_client.git".

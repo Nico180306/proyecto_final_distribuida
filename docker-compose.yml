@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # CONTENEDOR 1: Base de Datos (PostgreSQL)
+  # ==========================================
+  db:
+    image: postgres:15-alpine
+    container_name: catalogo_db
+    restart: always
+    # Leemos las mismas credenciales que configuramos en la Fase 1
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # Persistencia: Guardamos los datos de la BD en un volumen físico
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - red_distribuida
+
+  # ==========================================
+  # CONTENEDOR 2: Backend (Django REST API)
+  # ==========================================
+  backend:
+    build:
+      context: ./music_catalog_api
+    container_name: catalogo_backend
+    restart: always
+    # Exponemos el puerto 8000 hacia nuestra máquina
+    ports:
+      - "8000:8000"
+    # Cargamos nuestro archivo .env de la Fase 1
+    env_file:
+      - ./music_catalog_api/.env
+    # Orden de encendido: Django debe esperar a que la BD exista
+    depends_on:
+      - db
+    networks:
+      - red_distribuida
+
+  # ==========================================
+  # CONTENEDOR 3: Frontend (React + Nginx)
+  # ==========================================
+  frontend:
+    build:
+      context: ./music_catalog_client
+    container_name: catalogo_frontend
+    restart: always
+    # Mapeamos el puerto 80 de Nginx al puerto 80 de tu computadora (localhost)
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - red_distribuida
+
+# ==========================================
+# DECLARACIÓN DE VOLÚMENES Y REDES
+# ==========================================
+volumes:
+  postgres_data:
+
+networks:
+  red_distribuida:
+    driver: bridge
